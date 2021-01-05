@@ -153,8 +153,19 @@ class Assets extends Field implements FieldInterface
             $criteria['folderId'] = $folderIds;
             $criteria['kind'] = $settings['allowedKinds'];
             $criteria['limit'] = $limit;
-            $criteria['filename'] = $filename;
             $criteria['includeSubfolders'] = true;
+
+            $fileMatches = [];
+            preg_match('/^[^\/\?\*:;{}\\\]+\.[^\/\?\*:;{}\\\]+$/', $filename, $fileMatches);
+
+            if (count($fileMatches) > 0) {
+                $criteria['filename'] = $filename;
+            } else {
+                $criteria['where'] = ["=","assets.id",preg_replace('/\./', '', $filename)];
+                $criteria['kind'] = "image";
+                unset($criteria['status']);
+                unset($criteria['includeSubfolders']);
+            }
 
             Craft::configure($query, $criteria);
 
